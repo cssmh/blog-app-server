@@ -3,7 +3,7 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
-const port = 5000;
+const port = process.env.PORT;
 
 app.use(
   cors({
@@ -27,7 +27,6 @@ const client = new MongoClient(process.env.URI, {
 
 async function run() {
   try {
-    // await client.connect();
     const blogCollection = client.db("BlogAppDB").collection("Blogs");
 
     app.post("/blog", async (req, res) => {
@@ -62,10 +61,21 @@ async function run() {
 
     app.get("/all-blogs", async (req, res) => {
       try {
-        const result = await blogCollection.find().toArray();
-        res.send(result);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 3;
+        const skip = (page - 1) * limit;
+
+        const result = await blogCollection
+          .find()
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        const totalBlogs = await blogCollection.countDocuments();
+        res.send({ result, totalBlogs });
       } catch (err) {
         console.log(err);
+        res.status(500).send("Server error");
       }
     });
 
@@ -133,7 +143,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to SS Blog app Server");
+  res.send("Welcome to Blog app Server");
 });
 
 app.listen(port, () => {
