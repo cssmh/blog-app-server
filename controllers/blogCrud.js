@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const client = require("../config/db");
 const blogCollection = client.db("BlogAppDB").collection("Blogs");
 
@@ -63,6 +64,9 @@ const getSingleBlog = async (req, res) => {
 
 const getMyBlogs = async (req, res) => {
   try {
+    if (req.decodedUser?.email !== req.query?.email) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
     let query = {};
     if (req.query?.email) {
       query = { email: req.query.email };
@@ -77,15 +81,18 @@ const getMyBlogs = async (req, res) => {
 const updateBlog = async (req, res) => {
   try {
     const filter = { _id: new ObjectId(req.params?.id) };
-    const updatedDocs = req.body;
+    const { email } = await blogCollection.findOne(filter);
+    if (req.decodedUser?.email !== email) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
     const options = { new: true };
     const updated = {
       $set: {
-        title: updatedDocs.title,
-        content: updatedDocs.content,
-        category: updatedDocs.category,
-        tags: updatedDocs.tags,
-        image: updatedDocs.image,
+        title: req.body.title,
+        content: req.body.content,
+        category: req.body.category,
+        tags: req.body.tags,
+        image: req.body.image,
       },
     };
 
@@ -113,8 +120,12 @@ const addComment = async (req, res) => {
 
 const deleteBlog = async (req, res) => {
   try {
-    const query = { _id: new ObjectId(req.params?.id) };
-    const result = await blogCollection.deleteOne(query);
+    const filter = { _id: new ObjectId(req.params?.id) };
+    const { email } = await blogCollection.findOne(filter);
+    if (req.decodedUser?.email !== email) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    const result = await blogCollection.deleteOne(filter);
     res.send(result);
   } catch (err) {
     console.log(err);
