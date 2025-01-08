@@ -8,6 +8,7 @@ const {
   updateBlog,
   addComment,
   deleteBlog,
+  updateComment,
 } = require("../controllers/blogCrud");
 const { addJwt, getLogout } = require("../controllers/jwt");
 const { isToken } = require("../middlewares/auth");
@@ -26,6 +27,7 @@ router.get("/my-blogs", isToken, getMyBlogs);
 // put
 router.put("/update-blog/:id", isToken, updateBlog);
 router.patch("/add-comment/:id", addComment);
+router.patch("/update-comment/:id", updateComment);
 // delete
 router.delete("/blog/:id", isToken, deleteBlog);
 

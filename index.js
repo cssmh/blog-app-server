@@ -11,7 +11,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://blogapp-eaa3d.web.app",
-      "https://mblogapp.netlify.app",
+      "https://blog-app-dark.vercel.app",
     ],
     credentials: true,
   })

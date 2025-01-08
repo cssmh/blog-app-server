@@ -103,21 +103,6 @@ const updateBlog = async (req, res) => {
   }
 };
 
-const addComment = async (req, res) => {
-  const { user, content, timestamp } = req.body;
-  try {
-    const newComment = { user, content, timestamp };
-    const filter = { _id: new ObjectId(req.params.id) };
-    const result = await blogCollection.updateOne(filter, {
-      $push: { comments: newComment },
-    });
-
-    res.send(result);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const deleteBlog = async (req, res) => {
   try {
     const filter = { _id: new ObjectId(req.params?.id) };
@@ -132,13 +117,22 @@ const deleteBlog = async (req, res) => {
   }
 };
 
+const addComment = async (req, res) => {
+  const { user, email, content, timestamp } = req.body;
+  try {
+    const newComment = { user, email, content, timestamp };
+    const filter = { _id: new ObjectId(req.params.id) };
+    const result = await blogCollection.updateOne(filter, {
+      $push: { comments: newComment },
+    });
+
+    res.send(result);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
-  postBlog,
-  getHomeBlog,
-  getAllBlog,
-  getSingleBlog,
-  getMyBlogs,
-  updateBlog,
-  addComment,
-  deleteBlog,
+  postBlog, getHomeBlog, getAllBlog, getSingleBlog, getMyBlogs, updateBlog,
+  addComment, deleteBlog, updateComment
 };
