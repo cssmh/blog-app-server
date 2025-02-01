@@ -68,26 +68,6 @@ const getHomeBlog = async (req, res) => {
   }
 };
 
-const getAllBlog = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 3;
-    const skip = (page - 1) * limit;
-
-    const result = await blogCollection
-      .find()
-      .skip(skip)
-      .limit(limit)
-      .toArray();
-
-    const totalBlogs = await blogCollection.countDocuments();
-    res.send({ result, totalBlogs });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Server error");
-  }
-};
-
 const getSingleBlog = async (req, res) => {
   try {
     const query = { _id: new ObjectId(req.params?.id) };
@@ -189,7 +169,6 @@ module.exports = {
   navbarBlogs,
   postBlog,
   getHomeBlog,
-  getAllBlog,
   getSingleBlog,
   getMyBlogs,
   updateBlog,

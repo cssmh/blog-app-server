@@ -2,7 +2,6 @@ const express = require("express");
 const {
   postBlog,
   getHomeBlog,
-  getAllBlog,
   getSingleBlog,
   getMyBlogs,
   updateBlog,
@@ -10,6 +9,7 @@ const {
   deleteBlog,
   updateComment,
   navbarBlogs,
+  putBlog,
 } = require("../controllers/blogCrud");
 const { addJwt, getLogout } = require("../controllers/jwt");
 const { isToken } = require("../middlewares/auth");
@@ -23,7 +23,6 @@ router.get("/logout", getLogout);
 router.post("/blog", postBlog);
 router.get("/nav-blog", navbarBlogs);
 router.get("/home-blog", getHomeBlog);
-router.get("/all-blogs", getAllBlog);
 router.get("/blog/:id", getSingleBlog);
 router.get("/my-blogs", isToken, getMyBlogs);
 // put
