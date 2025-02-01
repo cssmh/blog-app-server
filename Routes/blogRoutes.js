@@ -9,6 +9,7 @@ const {
   addComment,
   deleteBlog,
   updateComment,
+  navbarBlogs,
 } = require("../controllers/blogCrud");
 const { addJwt, getLogout } = require("../controllers/jwt");
 const { isToken } = require("../middlewares/auth");
@@ -20,6 +21,7 @@ router.post("/jwt", addJwt);
 router.get("/logout", getLogout);
 // post blog
 router.post("/blog", postBlog);
+router.get("/nav-blog", navbarBlogs);
 router.get("/home-blog", getHomeBlog);
 router.get("/all-blogs", getAllBlog);
 router.get("/blog/:id", getSingleBlog);

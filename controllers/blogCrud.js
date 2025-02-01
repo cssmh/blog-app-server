@@ -12,9 +12,8 @@ const postBlog = async (req, res) => {
   }
 };
 
-const getHomeBlog = async (req, res) => {
-  const searchTerm = req.query?.search || "";
-  const category = req.query?.category || "";
+const navbarBlogs = async (req, res) => {
+  const searchTerm = req.query.search || "";
   try {
     const query = {
       $or: [
@@ -22,13 +21,50 @@ const getHomeBlog = async (req, res) => {
         { category: { $regex: searchTerm, $options: "i" } },
       ],
     };
+
+    const result = await blogCollection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error searching blogs:", error);
+    res.status(500).send({ message: "Failed to search blogs", error });
+  }
+};
+
+const getHomeBlog = async (req, res) => {
+  const category = req.query?.category || "";
+  const sortOption = req.query?.sort || "latest"; // Get sorting option from query
+
+  try {
+    const query = {};
+
     if (category) {
       query.category = category;
     }
-    const result = await blogCollection.find(query).limit(6).toArray();
+
+    let sortCriteria = { timestamp: -1 }; // Default to latest (newest first)
+
+    if (sortOption === "random") {
+      sortCriteria = { $sample: { size: 10 } }; // MongoDB random selection
+    } else if (sortOption === "all") {
+      sortCriteria = {}; // No sorting, return all
+    }
+
+    let result;
+
+    if (sortOption === "random") {
+      // If random, use aggregation
+      result = await blogCollection
+        .aggregate([{ $match: query }, sortCriteria])
+        .toArray();
+    } else {
+      // Otherwise, use find() with sorting
+      result = await blogCollection.find(query).sort(sortCriteria).toArray();
+    }
+
     res.send(result);
   } catch (error) {
-    console.log(err);
+    console.error("Error fetching blogs:", error);
+    res.status(500).send({ message: "Failed to fetch blogs", error });
   }
 };
 
@@ -132,7 +168,32 @@ const addComment = async (req, res) => {
   }
 };
 
+const updateComment = async (req, res) => {
+  const { comment, updatedContent } = req.body;
+  const filter = {
+    _id: new ObjectId(req.params.id),
+    "comments.timestamp": comment.timestamp,
+  };
+  const update = { $set: { "comments.$.content": updatedContent } };
+
+  try {
+    const result = await blogCollection.updateOne(filter, update);
+    res.send(result);
+  } catch (error) {
+    console.error("Error updating comment:", error);
+    res.status(500).send("Failed to update comment.");
+  }
+};
+
 module.exports = {
-  postBlog, getHomeBlog, getAllBlog, getSingleBlog, getMyBlogs, updateBlog,
-  addComment, deleteBlog, updateComment
+  navbarBlogs,
+  postBlog,
+  getHomeBlog,
+  getAllBlog,
+  getSingleBlog,
+  getMyBlogs,
+  updateBlog,
+  addComment,
+  deleteBlog,
+  updateComment,
 };
