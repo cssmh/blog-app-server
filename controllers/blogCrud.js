@@ -41,25 +41,26 @@ const getHomeBlog = async (req, res) => {
       query.category = category;
     }
 
-    let sortCriteria = { timestamp: -1 }; // Default to latest (newest first)
+    let sortCriteria = { timestamp: -1 }; 
+
+    let aggregationPipeline = [{ $match: query }];
 
     if (sortOption === "random") {
-      sortCriteria = { $sample: { size: 10 } }; // MongoDB random selection
-    } else if (sortOption === "all") {
-      sortCriteria = {}; // No sorting, return all
+      aggregationPipeline.push({ $sample: { size: 10 } }); // MongoDB random selection
+    } else if (sortOption === "popular") {
+      aggregationPipeline.push(
+        {
+          $addFields: {
+            commentsCount: { $size: { $ifNull: ["$comments", []] } }, // Handle missing comments
+          },
+        },
+        { $sort: { commentsCount: -1 } } // Sort by comment count (descending)
+      );
+    } else if (sortOption === "latest") {
+      aggregationPipeline.push({ $sort: { timestamp: -1 } }); // Sort by latest
     }
 
-    let result;
-
-    if (sortOption === "random") {
-      // If random, use aggregation
-      result = await blogCollection
-        .aggregate([{ $match: query }, sortCriteria])
-        .toArray();
-    } else {
-      // Otherwise, use find() with sorting
-      result = await blogCollection.find(query).sort(sortCriteria).toArray();
-    }
+    let result = await blogCollection.aggregate(aggregationPipeline).toArray();
 
     res.send(result);
   } catch (error) {
