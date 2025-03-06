@@ -9,7 +9,7 @@ const port = process.env.PORT;
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
+      "http://localhost:3000",
       "https://blogapp-eaa3d.web.app",
       "https://blog-appweb.vercel.app",
     ],
