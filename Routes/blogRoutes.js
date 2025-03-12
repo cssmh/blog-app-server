@@ -9,6 +9,10 @@ const {
   deleteBlog,
   updateComment,
   navbarBlogs,
+  likeBlog,
+  unlikeBlog,
+  likeComment,
+  unlikeComment,
 } = require("../controllers/blogCrud");
 const { addJwt, getLogout } = require("../controllers/jwt");
 const { isToken } = require("../middlewares/auth");
@@ -35,6 +39,10 @@ router.get("/my-bookmarks", isToken, getMyBookmark);
 router.put("/update-blog/:id", isToken, updateBlog);
 router.patch("/add-comment/:id", addComment);
 router.patch("/update-comment/:id", updateComment);
+router.patch("/like-blog/:id", likeBlog);
+router.patch("/unlike-blog/:id", unlikeBlog);
+router.patch("/like-comment/:blogId/:commentId", likeComment);
+router.patch("/unlike-comment/:blogId/:commentId", unlikeComment);
 // delete
 router.delete("/blog/:id", isToken, deleteBlog);
 router.delete("/bookmark/:id", isToken, deleteBookmark);
