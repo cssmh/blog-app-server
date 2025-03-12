@@ -32,36 +32,30 @@ const navbarBlogs = async (req, res) => {
 
 const getHomeBlog = async (req, res) => {
   const category = req.query?.category || "";
-  const sortOption = req.query?.sort || "latest"; // Get sorting option from query
+  const sortOption = req.query?.sort || "latest";
 
   try {
     const query = {};
-
-    if (category) {
-      query.category = category;
-    }
-
-    let sortCriteria = { timestamp: -1 }; 
+    if (category) query.category = category;
 
     let aggregationPipeline = [{ $match: query }];
 
     if (sortOption === "random") {
-      aggregationPipeline.push({ $sample: { size: 10 } }); // MongoDB random selection
+      aggregationPipeline.push({ $sample: { size: 10 } });
     } else if (sortOption === "popular") {
       aggregationPipeline.push(
         {
           $addFields: {
-            commentsCount: { $size: { $ifNull: ["$comments", []] } }, // Handle missing comments
+            commentsCount: { $size: { $ifNull: ["$comments", []] } },
           },
         },
-        { $sort: { commentsCount: -1 } } // Sort by comment count (descending)
+        { $sort: { commentsCount: -1 } }
       );
-    } else if (sortOption === "latest") {
-      aggregationPipeline.push({ $sort: { timestamp: -1 } }); // Sort by latest
+    } else {
+      aggregationPipeline.push({ $sort: { timestamp: -1 } });
     }
 
     let result = await blogCollection.aggregate(aggregationPipeline).toArray();
-
     res.send(result);
   } catch (error) {
     console.error("Error fetching blogs:", error);
