@@ -162,6 +162,7 @@ const updateComment = async (req, res) => {
 
 const likeBlog = async (req, res) => {
   const { email } = req.body; // Logged-in user's email
+  const blogId = req.params.id;
 
   if (!email || !blogId) {
     return res.status(400).send({ message: "Email and blog ID are required" });
@@ -181,7 +182,7 @@ const likeBlog = async (req, res) => {
     }
 
     // Check if the user has already liked the blog
-    if (blog.likes.includes(email)) {
+    if (blog?.likes?.includes(email)) {
       return res.status(400).send({ message: "You already liked this blog" });
     }
 
@@ -193,9 +194,6 @@ const likeBlog = async (req, res) => {
     res.send(result);
   } catch (error) {
     console.error("Error liking blog:", error);
-    res
-      .status(500)
-      .send({ message: "Failed to like blog", error: error.message });
   }
 };
 
@@ -235,106 +233,6 @@ const unlikeBlog = async (req, res) => {
     res.send(result);
   } catch (error) {
     console.error("Error unliking blog:", error);
-    res
-      .status(500)
-      .send({ message: "Failed to unlike blog", error: error.message });
-  }
-};
-
-const likeComment = async (req, res) => {
-  const { email } = req.body; // Logged-in user's email
-  const { blogId, commentId } = req.params;
-
-  if (!email || !blogId || !commentId) {
-    return res
-      .status(400)
-      .send({ message: "Email, blog ID, and comment ID are required" });
-  }
-
-  try {
-    const filter = {
-      _id: new ObjectId(blogId),
-      "comments._id": new ObjectId(commentId),
-    };
-    const blog = await blogCollection.findOne(filter);
-
-    if (!blog) {
-      return res.status(404).send({ message: "Blog or comment not found" });
-    }
-
-    // Find the comment
-    const comment = blog.comments.find((c) => c._id.toString() === commentId);
-
-    // Initialize the likes array if it doesn't exist
-    if (!comment.likes) {
-      await blogCollection.updateOne(filter, {
-        $set: { "comments.$.likes": [] },
-      });
-    }
-
-    // Check if the user has already liked the comment
-    if (comment.likes.includes(email)) {
-      return res
-        .status(400)
-        .send({ message: "You already liked this comment" });
-    }
-
-    // Add the user's email to the likes array
-    const result = await blogCollection.updateOne(filter, {
-      $push: { "comments.$.likes": email },
-    });
-
-    res.send(result);
-  } catch (error) {
-    console.error("Error liking comment:", error);
-    res
-      .status(500)
-      .send({ message: "Failed to like comment", error: error.message });
-  }
-};
-
-const unlikeComment = async (req, res) => {
-  const { email } = req.body; // Logged-in user's email
-  const { blogId, commentId } = req.params;
-
-  if (!email || !blogId || !commentId) {
-    return res
-      .status(400)
-      .send({ message: "Email, blog ID, and comment ID are required" });
-  }
-
-  try {
-    const filter = {
-      _id: new ObjectId(blogId),
-      "comments._id": new ObjectId(commentId),
-    };
-    const blog = await blogCollection.findOne(filter);
-
-    if (!blog) {
-      return res.status(404).send({ message: "Blog or comment not found" });
-    }
-
-    // Find the comment
-    const comment = blog.comments.find((c) => c._id.toString() === commentId);
-
-    // Check if the user has liked the comment
-    if (!comment.likes || !comment.likes.includes(email)) {
-      return res
-        .status(400)
-        .send({ message: "You haven't liked this comment yet" });
-    }
-
-    // Remove the user's email from the likes array
-    const result = await blogCollection.updateOne(filter, {
-      $pull: { "comments.$.likes": email },
-    });
-
-    res.send(result);
-  } catch (error) {
-    console.error("Error unliking comment:", error);
-    res
-      .status(500)
-      .send({ message: "Failed to unlike comment", error: error.message });
   }
 };
 
@@ -350,6 +248,4 @@ module.exports = {
   updateComment,
   likeBlog,
   unlikeBlog,
-  likeComment,
-  unlikeComment,
 };
